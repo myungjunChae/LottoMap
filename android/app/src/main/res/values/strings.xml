@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">lotto_map</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="geocoder_api_key">AIzaSyASFKaOV3J-9XXKgmL9LeSkffmVfpQ4pHE</string>
 </resources>

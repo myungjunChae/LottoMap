@@ -1,12 +1,14 @@
 package com.ono.lotto_map
 
-import com.ono.lotto_map.data.response.Geometry
+import androidx.test.runner.AndroidJUnit4
 import com.ono.lotto_map.datasource.remote.MapsApi
 import com.ono.lotto_map.datasource.remote.MapsRemoteDataSource
 import io.reactivex.schedulers.Schedulers
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
+
 import org.junit.Test
+import org.junit.runner.RunWith
 
 import org.junit.Assert.*
 import retrofit2.Retrofit
@@ -15,11 +17,12 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 /**
- * Example local unit test, which will execute on the development machine (host).
+ * Instrumented test, which will execute on an Android device.
  *
  * See [testing documentation](http://d.android.com/tools/testing).
  */
-class ExampleUnitTest {
+@RunWith(AndroidJUnit4::class)
+class MapsRemoteDataSourceTest {
     val baseUrl = "https://maps.googleapis.com/maps/api/geocode/json/"
 
     val LogInterceptor = HttpLoggingInterceptor().apply {
@@ -43,8 +46,7 @@ class ExampleUnitTest {
     val remoteDatasource = MapsRemoteDataSource(retrofit.create(MapsApi::class.java))
 
     @Test
-    fun `same latlng`() {
-        var actual : Geometry
+    fun searchLocation_same_response() {
         remoteDatasource.searchAddress("서울")
             .subscribeOn(Schedulers.io())
             .subscribe(

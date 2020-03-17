@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--UserInfo-->
+    <fraction name="mapSearchViewMarginTop">0.1</fraction>
+
+</resources>
