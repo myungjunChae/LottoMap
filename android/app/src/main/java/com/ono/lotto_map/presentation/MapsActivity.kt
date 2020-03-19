@@ -20,9 +20,14 @@ import android.graphics.Bitmap
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.RelativeLayout
+import android.widget.Switch
+import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import com.ono.lotto_map.R
+import com.ono.lotto_map.data.model.StoreInfo
 import com.ono.lotto_map.databinding.ViewInfoWindowBinding
+import com.ono.lotto_map.showToast
+import kotlinx.android.synthetic.main.activity_maps.*
 import kotlinx.android.synthetic.main.bottom_sheet.*
 import kotlinx.android.synthetic.main.view_info_window.view.*
 
@@ -31,7 +36,6 @@ class MapsActivity : BaseActivity<ActivityMapsBinding>(), OnMapReadyCallback {
     override val resourceId: Int = R.layout.activity_maps
     private lateinit var mMap: GoogleMap
     private val vm: MapsViewModel by viewModel()
-    private val SCAN_RANGE = 2000
 
     private val bottomSheetBehavior by lazy {
         BottomSheetBehavior.from(binding.bottomSheet.root)
@@ -39,9 +43,16 @@ class MapsActivity : BaseActivity<ActivityMapsBinding>(), OnMapReadyCallback {
 
     private var bottomSheetState = BottomSheetBehavior.STATE_COLLAPSED
 
+    private val goldList = mutableListOf<Marker>()
+    private val silverList = mutableListOf<Marker>()
+    private val bronzeList = mutableListOf<Marker>()
+
     private val goldIcon by lazy { resizeBitmap(R.drawable.ic_gold, 180, 180) }
     private val silverIcon by lazy { resizeBitmap(R.drawable.ic_silver, 150, 150) }
     private val bronzeIcon by lazy { resizeBitmap(R.drawable.ic_bronze, 140, 140) }
+
+    private val SCAN_RANGE = 2000
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,6 +61,7 @@ class MapsActivity : BaseActivity<ActivityMapsBinding>(), OnMapReadyCallback {
             when (i) {
                 EditorInfo.IME_ACTION_DONE -> {
                     vm.searchAddress(view.text.toString())
+                    showBottomSheet(false)
                     showProgressCircular(true)
                     false
                 }
@@ -61,6 +73,31 @@ class MapsActivity : BaseActivity<ActivityMapsBinding>(), OnMapReadyCallback {
 
         binding.clearButton.setOnClickListener {
             binding.editText.text.clear()
+        }
+
+        binding.goldSwitch.isChecked = true
+        binding.silverSwitch.isChecked = true
+        binding.bronzeSwitch.isChecked = true
+
+        binding.goldSwitch.setOnCheckedChangeListener { button, isChecked ->
+            when (isChecked) {
+                true -> goldList.map { it.isVisible = true }
+                false -> goldList.map { it.isVisible = false }
+            }
+        }
+
+        binding.silverSwitch.setOnCheckedChangeListener { button, isChecked ->
+            when (isChecked) {
+                true -> silverList.map { it.isVisible = true }
+                false -> silverList.map { it.isVisible = false }
+            }
+        }
+
+        binding.bronzeSwitch.setOnCheckedChangeListener { button, isChecked ->
+            when (isChecked) {
+                true -> bronzeList.map { it.isVisible = true }
+                false -> bronzeList.map { it.isVisible = false }
+            }
         }
 
         val mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
@@ -93,7 +130,7 @@ class MapsActivity : BaseActivity<ActivityMapsBinding>(), OnMapReadyCallback {
         }
 
         vm.currentLatLng.observe(this, Observer() {
-            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(it,12.0f))
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(it, 12.0f))
             updateNearStore()
         })
     }
@@ -119,7 +156,8 @@ class MapsActivity : BaseActivity<ActivityMapsBinding>(), OnMapReadyCallback {
         mMap.clear()
 
         //검색된 위치 주변의 판매점 검색 및 마킹
-        for((index,store) in application.storeInfos.withIndex()){
+        var searchNum = 0
+        for ((index, store) in application.storeInfos.withIndex()) {
             var results = FloatArray(1)
             Location.distanceBetween(
                 currentLocation.latitude,
@@ -131,23 +169,42 @@ class MapsActivity : BaseActivity<ActivityMapsBinding>(), OnMapReadyCallback {
 
             var distanceInMeters = results[0]
 
-            if(distanceInMeters < SCAN_RANGE){
+            if (distanceInMeters < SCAN_RANGE) {
+                searchNum++
+                val score = store.first_winning * 8 + store.second_winning
                 val marker = mMap.addMarker(
                     MarkerOptions().apply {
                         position(LatLng(store.lat, store.lng))
-                        val score = store.first_winning * 8 + store.second_winning
                         when {
-                            score >= 30 -> icon(BitmapDescriptorFactory.fromBitmap(goldIcon)).zIndex(
-                                100.0F
-                            )
-                            score in 10 until 30 -> icon(BitmapDescriptorFactory.fromBitmap(silverIcon)).zIndex(
-                                90.0F
-                            )
-                            else -> icon(BitmapDescriptorFactory.fromBitmap(bronzeIcon)).zIndex(80.0F)
+                            score >= 30 -> {
+                                if(!gold_switch.isChecked)
+                                    visible(false)
+
+                                icon(BitmapDescriptorFactory.fromBitmap(goldIcon)).zIndex(100.0F)
+                            }
+                            score in 10 until 30 -> {
+                                if(!silver_switch.isChecked)
+                                    visible(false)
+
+                                icon(BitmapDescriptorFactory.fromBitmap(silverIcon)).zIndex(90.0F)
+                            }
+                            else -> {
+                                if(!bronze_switch.isChecked)
+                                    visible(false)
+
+                                icon(BitmapDescriptorFactory.fromBitmap(bronzeIcon)).zIndex(80.0F)
+                            }
                         }
-                   }
+                    }
                 )
+
+                when {
+                    score >= 30 -> goldList.add(marker)
+                    score in 10 until 30 -> silverList.add(marker)
+                    else -> bronzeList.add(marker)
+                }
                 marker.tag = index
+
 
                 mMap.setOnMarkerClickListener {
                     bottomSheetBehavior.apply {
@@ -163,27 +220,29 @@ class MapsActivity : BaseActivity<ActivityMapsBinding>(), OnMapReadyCallback {
             }
         }
 
+        showToast("${searchNum}개의 로또판매점이 검색되었습니다.")
         showProgressCircular(false)
     }
 
-    fun showProgressCircular(state : Boolean){
-        when(state){
+    private fun showProgressCircular(state: Boolean) {
+        when (state) {
             true -> binding.progressCircular.visibility = View.VISIBLE
             false -> binding.progressCircular.visibility = View.INVISIBLE
         }
     }
 }
 
-class temp(private val context : Context) : GoogleMap.InfoWindowAdapter{
+class temp(private val context: Context) : GoogleMap.InfoWindowAdapter {
     val application = context.applicationContext as MyApplication
 
     override fun getInfoWindow(marker: Marker?): View? {
         val inflater = LayoutInflater.from(context)
-        val binding : ViewInfoWindowBinding = DataBindingUtil.inflate(inflater,R.layout.view_info_window,null,false)
+        val binding: ViewInfoWindowBinding =
+            DataBindingUtil.inflate(inflater, R.layout.view_info_window, null, false)
         val index = marker?.tag.toString().toInt()
 
         binding.shopTitle.text = application.storeInfos[index].shop
-        binding.rank.text = "${(index+1)}등"
+        binding.rank.text = "${(index + 1)}등"
         binding.firstWinning.text = "1등 : ${application.storeInfos[index].first_winning}회"
         binding.secondWinning.text = "2등 : ${application.storeInfos[index].second_winning}회"
         return binding.root

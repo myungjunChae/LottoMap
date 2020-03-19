@@ -11,6 +11,5 @@ data class StoreInfo(
     val location: String,
     val phone: String,
     val shop: String,
-    val score: Int,
-    val rank: Int?
+    val score: Int
 )

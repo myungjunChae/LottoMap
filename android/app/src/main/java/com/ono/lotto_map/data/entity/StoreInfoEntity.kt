@@ -16,7 +16,7 @@ data class StoreInfoEntity(
 
 fun StoreInfoEntity.toModel(): StoreInfo {
     val score = first_winning * 8 + second_winning
-    return StoreInfo(first_winning, second_winning, lat, lng, location, phone, shop, score, 0)
+    return StoreInfo(first_winning, second_winning, lat, lng, location, phone, shop, score)
 }
 
 fun List<StoreInfoEntity>.toModel(): List<StoreInfo> = map {
