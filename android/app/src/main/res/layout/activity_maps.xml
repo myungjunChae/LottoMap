@@ -15,6 +15,13 @@
             android:layout_height="match_parent"
             tools:context=".presentation.MapsActivity" />
 
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/horizontal_guideline_1"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:orientation="horizontal"
+            app:layout_constraintGuide_percent="@fraction/mapSearchViewMarginTop" />
+
         <View
             android:id="@+id/search_view"
             android:layout_width="0dp"
@@ -53,19 +60,18 @@
             app:layout_constraintTop_toTopOf="@id/edit_text" />
 
         <androidx.constraintlayout.widget.Guideline
-            android:id="@+id/horizontal_guideline_1"
+            android:id="@+id/horizontal_guideline_2"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:orientation="horizontal"
-            app:layout_constraintGuide_percent="@fraction/mapSearchViewMarginTop" />
-
+            app:layout_constraintGuide_percent="@fraction/mapBottomSheetTopLimit" />
 
         <androidx.coordinatorlayout.widget.CoordinatorLayout
             android:id="@+id/marker_info"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/horizontal_guideline_1">
+            app:layout_constraintTop_toBottomOf="@id/horizontal_guideline_2">
 
             <include
                 android:id="@+id/bottom_sheet"
@@ -76,6 +82,17 @@
                 app:layout_behavior="@string/bottom_sheet_behavior" />
 
         </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+        <ProgressBar
+            android:id="@+id/progress_circular"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+        </ProgressBar>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

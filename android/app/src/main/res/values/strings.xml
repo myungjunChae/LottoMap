@@ -2,4 +2,5 @@
     <string name="app_name">lotto_map</string>
     <string name="title_activity_maps">Map</string>
     <string name="geocoder_api_key">AIzaSyASFKaOV3J-9XXKgmL9LeSkffmVfpQ4pHE</string>
+    <string name="test">랭킹 : 1위 \n 1등 : 2회 \n 2등 : 3회 \n</string>
 </resources>

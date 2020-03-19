@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!--UserInfo-->
+    <!--MapAcitivity-->
     <fraction name="mapSearchViewMarginTop">0.1</fraction>
+    <fraction name="mapBottomSheetTopLimit">0.75</fraction>
 
 </resources>

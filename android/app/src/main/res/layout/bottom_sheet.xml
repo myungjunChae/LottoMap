@@ -1,19 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:app="http://schemas.android.com/apk/res-auto">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
     <androidx.constraintlayout.widget.ConstraintLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:background="@android:color/white">
+        android:background="@android:color/white"
+        android:orientation="vertical">
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/search_result"
+        <TextView
+            android:id="@+id/store_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="10dp"
+            android:text="제목"
+            android:textColor="@android:color/black"
+            android:textSize="20sp"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"/>
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/store_location"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:text="경기 용인시 기흥구 예천로 45"
+            android:textColor="@color/colorGray"
+            android:textSize="16sp"
+            app:layout_constraintStart_toStartOf="@id/store_title"
+            app:layout_constraintTop_toBottomOf="@id/store_title" />
+
+        <TextView
+            android:id="@+id/store_phone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:text="070-0000-0000"
+            android:textColor="@color/colorBlue"
+            android:textSize="16sp"
+            app:layout_constraintStart_toStartOf="@id/store_title"
+            app:layout_constraintTop_toBottomOf="@id/store_location" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>
