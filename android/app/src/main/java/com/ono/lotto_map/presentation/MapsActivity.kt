@@ -54,8 +54,15 @@ class MapsActivity : BaseActivity<ActivityMapsBinding>(), OnMapReadyCallback {
         binding.editText.setOnEditorActionListener { view, i, keyEvent ->
             when (i) {
                 EditorInfo.IME_ACTION_DONE -> {
-                    vm.searchAddress(view.text.toString())
-                    showProgressCircular(true)
+                    when (view.text.toString().isBlank()) {
+                        true -> {
+                            showToast("검색어를 입력해주세요.")
+                        }
+                        false -> {
+                            vm.searchAddress(view.text.toString())
+                            showProgressCircular(true)
+                        }
+                    }
                     false
                 }
                 else -> {
