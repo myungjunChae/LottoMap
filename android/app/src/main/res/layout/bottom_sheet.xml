@@ -14,6 +14,8 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
             android:layout_marginTop="10dp"
+            android:ellipsize="end"
+            android:singleLine="true"
             android:text="제목"
             android:textColor="@android:color/black"
             android:textSize="20sp"
@@ -25,6 +27,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="3dp"
+            android:ellipsize="end"
+            android:singleLine="true"
             android:text="경기 용인시 기흥구 예천로 45"
             android:textColor="@color/colorGray"
             android:textSize="16sp"
@@ -36,10 +40,37 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="3dp"
+            android:background="@drawable/bottm_line"
             android:text="070-0000-0000"
             android:textColor="@color/colorBlue"
             android:textSize="16sp"
             app:layout_constraintStart_toStartOf="@id/store_title"
             app:layout_constraintTop_toBottomOf="@id/store_location" />
+
+        <View
+            android:id="@+id/line"
+            android:layout_width="0dp"
+            android:layout_height="0.5dp"
+            android:layout_marginTop="15dp"
+            android:background="@color/colorGray"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/store_phone" />
+
+        <TextView
+            android:id="@+id/btn_google_map"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:layout_marginEnd="10dp"
+            android:background="@drawable/rounded_button"
+            android:paddingStart="10dp"
+            android:paddingTop="7dp"
+            android:paddingEnd="10dp"
+            android:paddingBottom="7dp"
+            android:text="구글지도에서 검색"
+            android:textColor="@android:color/white"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/line" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

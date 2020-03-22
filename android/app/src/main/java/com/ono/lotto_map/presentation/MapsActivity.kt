@@ -1,7 +1,7 @@
 package com.ono.lotto_map.presentation
 
-import android.app.Application
 import android.content.Context
+import android.content.Intent
 import android.graphics.BitmapFactory
 import android.location.Location
 import android.os.Bundle
@@ -17,19 +17,20 @@ import com.ono.lotto_map.databinding.ActivityMapsBinding
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import com.ono.lotto_map.application.MyApplication
 import android.graphics.Bitmap
+import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
-import android.widget.RelativeLayout
-import android.widget.Switch
-import android.widget.Toast
+import android.widget.TextView
 import androidx.databinding.DataBindingUtil
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.MobileAds
 import com.ono.lotto_map.R
 import com.ono.lotto_map.data.model.StoreInfo
 import com.ono.lotto_map.databinding.ViewInfoWindowBinding
 import com.ono.lotto_map.showToast
 import kotlinx.android.synthetic.main.activity_maps.*
 import kotlinx.android.synthetic.main.bottom_sheet.*
-import kotlinx.android.synthetic.main.view_info_window.view.*
 
 
 class MapsActivity : BaseActivity<ActivityMapsBinding>(), OnMapReadyCallback {
@@ -37,22 +38,15 @@ class MapsActivity : BaseActivity<ActivityMapsBinding>(), OnMapReadyCallback {
     private lateinit var mMap: GoogleMap
     private val vm: MapsViewModel by viewModel()
 
-    private val bottomSheetBehavior by lazy {
-        BottomSheetBehavior.from(binding.bottomSheet.root)
-    }
-
-    private var bottomSheetState = BottomSheetBehavior.STATE_COLLAPSED
-
     private val goldList = mutableListOf<Marker>()
     private val silverList = mutableListOf<Marker>()
     private val bronzeList = mutableListOf<Marker>()
 
-    private val goldIcon by lazy { resizeBitmap(R.drawable.ic_gold, 180, 180) }
-    private val silverIcon by lazy { resizeBitmap(R.drawable.ic_silver, 150, 150) }
-    private val bronzeIcon by lazy { resizeBitmap(R.drawable.ic_bronze, 140, 140) }
+    private val goldIcon by lazy { loadBitmap(R.drawable.ic_gold) }
+    private val silverIcon by lazy { loadBitmap(R.drawable.ic_silver) }
+    private val bronzeIcon by lazy { loadBitmap(R.drawable.ic_bronze) }
 
     private val SCAN_RANGE = 2000
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,7 +55,6 @@ class MapsActivity : BaseActivity<ActivityMapsBinding>(), OnMapReadyCallback {
             when (i) {
                 EditorInfo.IME_ACTION_DONE -> {
                     vm.searchAddress(view.text.toString())
-                    showBottomSheet(false)
                     showProgressCircular(true)
                     false
                 }
@@ -100,15 +93,46 @@ class MapsActivity : BaseActivity<ActivityMapsBinding>(), OnMapReadyCallback {
             }
         }
 
+        binding.btnCall.setOnClickListener {
+            val filteredPhone = vm.currentStore.value!!.phone.filter { i -> i != '-' }
+            val intent = Intent().apply {
+                action = Intent.ACTION_DIAL
+                data = Uri.parse("tel:$filteredPhone")
+            }
+            startActivity(intent)
+        }
+
+        binding.btnGoogleMap.setOnClickListener {
+            val address = vm.currentStore.value!!.location
+            val intent = Intent().apply {
+                action = Intent.ACTION_VIEW
+                data = Uri.parse("google.navigation:q=$address")
+            }
+            startActivity(intent)
+        }
+
         val mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
+
+        vm.currentStore.observe(this, Observer {
+            when (it) {
+                null -> {
+                    showButtonView(false)
+                }
+                else -> {
+                    showButtonView(true)
+                }
+            }
+        })
+
+        //구글 애드몹
+        MobileAds.initialize(this) {}
+        val adRequest = AdRequest.Builder().build()
+        binding.adView.loadAd(adRequest)
     }
 
     override fun onBackPressed() {
-        when (bottomSheetState) {
-            BottomSheetBehavior.STATE_EXPANDED -> showBottomSheet(false)
-            BottomSheetBehavior.STATE_COLLAPSED -> super.onBackPressed()
-        }
+
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
@@ -126,7 +150,7 @@ class MapsActivity : BaseActivity<ActivityMapsBinding>(), OnMapReadyCallback {
             )
             uiSettings.isRotateGesturesEnabled = false // 회전 금지
             moveCamera(CameraUpdateFactory.newLatLngZoom(vm.currentLatLng.value, 10.0f)) //기본 좌표
-            setInfoWindowAdapter(temp(this@MapsActivity))
+            setInfoWindowAdapter(InfoWindowAdapter(this@MapsActivity))
         }
 
         vm.currentLatLng.observe(this, Observer() {
@@ -135,16 +159,12 @@ class MapsActivity : BaseActivity<ActivityMapsBinding>(), OnMapReadyCallback {
         })
     }
 
-    private fun showBottomSheet(state: Boolean) {
-        bottomSheetState = when (state) {
-            true -> BottomSheetBehavior.STATE_EXPANDED
-            false -> BottomSheetBehavior.STATE_COLLAPSED
-        }
-        bottomSheetBehavior.state = bottomSheetState
+    private fun loadBitmap(resourceId: Int): Bitmap {
+        return BitmapFactory.decodeResource(resources, resourceId)
     }
 
     private fun resizeBitmap(resourceId: Int, width: Int, height: Int): Bitmap {
-        val b = BitmapFactory.decodeResource(resources, resourceId)
+        val b = loadBitmap(resourceId)
         return Bitmap.createScaledBitmap(b, width, height, false)
     }
 
@@ -177,19 +197,19 @@ class MapsActivity : BaseActivity<ActivityMapsBinding>(), OnMapReadyCallback {
                         position(LatLng(store.lat, store.lng))
                         when {
                             score >= 30 -> {
-                                if(!gold_switch.isChecked)
+                                if (!gold_switch.isChecked)
                                     visible(false)
 
                                 icon(BitmapDescriptorFactory.fromBitmap(goldIcon)).zIndex(100.0F)
                             }
                             score in 10 until 30 -> {
-                                if(!silver_switch.isChecked)
+                                if (!silver_switch.isChecked)
                                     visible(false)
 
                                 icon(BitmapDescriptorFactory.fromBitmap(silverIcon)).zIndex(90.0F)
                             }
                             else -> {
-                                if(!bronze_switch.isChecked)
+                                if (!bronze_switch.isChecked)
                                     visible(false)
 
                                 icon(BitmapDescriptorFactory.fromBitmap(bronzeIcon)).zIndex(80.0F)
@@ -207,21 +227,29 @@ class MapsActivity : BaseActivity<ActivityMapsBinding>(), OnMapReadyCallback {
 
 
                 mMap.setOnMarkerClickListener {
-                    bottomSheetBehavior.apply {
-                        val index = it.tag.toString().toInt()
-                        val store = application.storeInfos[index]
-                        store_title.text = store.shop
-                        store_location.text = store.location
-                        store_phone.text = store.phone
-                    }
-                    showBottomSheet(true)
+                    val index = it.tag.toString().toInt()
+                    val store = application.storeInfos[index]
+                    vm.currentStore.value = store
+                    showButtonView(true)
                     false
+                }
+                mMap.setOnInfoWindowCloseListener {
+                    vm.currentStore.value = null
                 }
             }
         }
 
         showToast("${searchNum}개의 로또판매점이 검색되었습니다.")
         showProgressCircular(false)
+    }
+
+    private fun showButtonView(state: Boolean) {
+        val targetList = listOf<View>(binding.btnCall, binding.btnGoogleMap)
+
+        when (state) {
+            false -> targetList.forEach { it.visibility = View.GONE }
+            true -> targetList.forEach { it.visibility = View.VISIBLE }
+        }
     }
 
     private fun showProgressCircular(state: Boolean) {
@@ -232,16 +260,23 @@ class MapsActivity : BaseActivity<ActivityMapsBinding>(), OnMapReadyCallback {
     }
 }
 
-class temp(private val context: Context) : GoogleMap.InfoWindowAdapter {
-    val application = context.applicationContext as MyApplication
+class InfoWindowAdapter(private val context: Context) : GoogleMap.InfoWindowAdapter {
+    private val application = context.applicationContext as MyApplication
 
     override fun getInfoWindow(marker: Marker?): View? {
         val inflater = LayoutInflater.from(context)
         val binding: ViewInfoWindowBinding =
             DataBindingUtil.inflate(inflater, R.layout.view_info_window, null, false)
         val index = marker?.tag.toString().toInt()
+        val score = application.storeInfos[index].score
 
         binding.shopTitle.text = application.storeInfos[index].shop
+        when {
+            score >= 30 -> binding.rank.setTextColor(context.resources.getColor(R.color.colorGold))
+            score in 10 until 30 -> binding.rank.setTextColor(context.resources.getColor(R.color.colorSilver))
+            else -> binding.rank.setTextColor(context.resources.getColor(R.color.colorBronze))
+
+        }
         binding.rank.text = "${(index + 1)}등"
         binding.firstWinning.text = "1등 : ${application.storeInfos[index].first_winning}회"
         binding.secondWinning.text = "2등 : ${application.storeInfos[index].second_winning}회"

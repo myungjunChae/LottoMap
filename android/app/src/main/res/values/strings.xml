@@ -1,6 +1,9 @@
 <resources>
     <string name="app_name">lotto_map</string>
-    <string name="title_activity_maps">Map</string>
+    <string name="title_activity_maps">로또명당지도</string>
     <string name="geocoder_api_key">AIzaSyASFKaOV3J-9XXKgmL9LeSkffmVfpQ4pHE</string>
-    <string name="test">랭킹 : 1위 \n 1등 : 2회 \n 2등 : 3회 \n</string>
+
+    <string name="admob_app_id">ca-app-pub-1378806747716110~3086150302</string>
+    <string name="banner_ad_unit_id">ca-app-pub-1378806747716110/4785959378</string>
+    <string name="banner_ad_unit_id_for_test">ca-app-pub-3940256099942544/6300978111</string>
 </resources>

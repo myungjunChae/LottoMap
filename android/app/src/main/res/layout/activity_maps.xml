@@ -14,23 +14,17 @@
             android:layout_height="match_parent"
             tools:context=".presentation.MapsActivity" />
 
-        <androidx.constraintlayout.widget.Guideline
-            android:id="@+id/horizontal_guideline_1"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:orientation="horizontal"
-            app:layout_constraintGuide_percent="@fraction/mapSearchViewMarginTop" />
-
         <View
             android:id="@+id/search_view"
             android:layout_width="0dp"
-            android:layout_height="0dp"
+            android:layout_height="48dp"
             android:background="@android:color/white"
             android:elevation="4dp"
-            app:layout_constraintBottom_toTopOf="@id/horizontal_guideline_1"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.0" />
 
         <EditText
             android:id="@+id/edit_text"
@@ -120,22 +114,6 @@
             android:orientation="horizontal"
             app:layout_constraintGuide_percent="@fraction/mapBottomSheetTopLimit" />
 
-        <androidx.coordinatorlayout.widget.CoordinatorLayout
-            android:id="@+id/marker_info"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/horizontal_guideline_2">
-
-            <include
-                android:id="@+id/bottom_sheet"
-                layout="@layout/bottom_sheet"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                app:behavior_peekHeight="0dp"
-                app:layout_behavior="@string/bottom_sheet_behavior" />
-
-        </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
         <ProgressBar
             android:id="@+id/progress_circular"
@@ -146,6 +124,65 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
+
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:background="@android:color/white"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
+
+            <View
+                android:id="@+id/line"
+                android:layout_width="0dp"
+                android:layout_height="0.5dp"
+                android:layout_marginTop="15dp"
+                android:background="@color/colorGray"
+                app:layout_constraintBottom_toTopOf="@id/btn_call"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent" />
+
+            <TextView
+                android:id="@+id/btn_call"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:layout_marginEnd="10dp"
+                android:background="@drawable/bottm_line"
+                android:padding="4dp"
+                android:text="매장 전화하기"
+                android:textColor="@color/colorBlue"
+                android:textSize="12sp"
+                android:visibility="gone"
+                app:layout_constraintBottom_toTopOf="@id/adView"
+                app:layout_constraintEnd_toStartOf="@id/btn_google_map" />
+
+            <TextView
+                android:id="@+id/btn_google_map"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:layout_marginEnd="10dp"
+                android:padding="4dp"
+                android:text="지도에서 검색"
+                android:textColor="@android:color/black"
+                android:textSize="12sp"
+                android:visibility="gone"
+                app:layout_constraintBottom_toTopOf="@id/adView"
+                app:layout_constraintEnd_toEndOf="parent" />
+
+            <com.google.android.gms.ads.AdView xmlns:ads="http://schemas.android.com/apk/res-auto"
+                android:id="@+id/adView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                ads:adSize="FULL_WIDTHx50"
+                ads:adUnitId="@string/banner_ad_unit_id_for_test"
+                ads:layout_constraintBottom_toBottomOf="parent"
+                ads:layout_constraintEnd_toEndOf="parent"
+                ads:layout_constraintStart_toStartOf="parent" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

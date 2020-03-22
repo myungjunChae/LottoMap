@@ -5,4 +5,7 @@
     <color name="colorAccent">#D81B60</color>
     <color name="colorBlue">#1B65FE</color>
     <color name="colorGray">#767778</color>
+    <color name="colorGold">#FFBA00</color>
+    <color name="colorSilver">#B0B0B0</color>
+    <color name="colorBronze">#C87D54</color>
 </resources>
