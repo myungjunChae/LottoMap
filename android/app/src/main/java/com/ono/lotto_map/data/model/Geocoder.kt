@@ -1,4 +1,4 @@
-package com.ono.lotto_map.data.response
+package com.ono.lotto_map.data.model
 
 data class Geocoder(
     val results: List<Result>,
