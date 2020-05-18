@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">lotto_map</string>
     <string name="title_activity_maps">로또명당지도</string>
-    <string name="geocoder_api_key">AIzaSyASFKaOV3J-9XXKgmL9LeSkffmVfpQ4pHE</string>
+    <string name="geocoding_api_key">AIzaSyC_P87VS-0JA-T0ymUVXZYmmkziM2Vm7F0</string>
 
     <string name="admob_app_id">ca-app-pub-1378806747716110~3086150302</string>
     <string name="banner_ad_unit_id">ca-app-pub-1378806747716110/4785959378</string>
