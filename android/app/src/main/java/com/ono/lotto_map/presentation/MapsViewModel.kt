@@ -8,7 +8,7 @@ import com.ono.lotto_map.domain.MapsUsecase
 import io.reactivex.schedulers.Schedulers
 
 class MapsViewModel(private val mapsUsecase: MapsUsecase) : ViewModel() {
-    var currentLatLng =  MutableLiveData<LatLng>().apply {
+    var currentLatLng = MutableLiveData<LatLng>().apply {
         value = LatLng(37.498186, 127.027481)
     }
 
@@ -16,14 +16,15 @@ class MapsViewModel(private val mapsUsecase: MapsUsecase) : ViewModel() {
         value = null
     }
 
+    fun setNewLocation(lat: Double, lng: Double) {
+        currentLatLng.postValue(LatLng(lat, lng))
+    }
 
-
-    fun searchAddress(address: String) {
-        mapsUsecase.searchLocation(address)
+    fun searchAddress(key: String, address: String) {
+        mapsUsecase.searchLocation(key, address)
             .subscribeOn(Schedulers.io())
             .subscribe({
-                print(it)
-                currentLatLng.postValue(LatLng(it.location.lat, it.location.lng))
+                setNewLocation(it.location.lat, it.location.lng)
             }, {
                 print(it.message)
             })

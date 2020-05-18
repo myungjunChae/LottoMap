@@ -4,5 +4,5 @@ import com.ono.lotto_map.data.response.Geometry
 import io.reactivex.Single
 
 interface MapsRepository {
-    fun searchAddress(address: String) : Single<Geometry>
+    fun searchAddress(key: String, address: String): Single<Geometry>
 }

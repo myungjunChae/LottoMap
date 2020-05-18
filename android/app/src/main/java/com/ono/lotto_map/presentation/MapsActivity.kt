@@ -1,42 +1,54 @@
 package com.ono.lotto_map.presentation
 
+import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.location.Location
+import android.location.LocationManager
+import android.net.Uri
 import android.os.Bundle
+import android.os.Looper
+import android.provider.Settings
+import android.util.Log
+import android.view.LayoutInflater
+import android.view.View
 import android.view.inputmethod.EditorInfo
+import android.widget.Toast
+import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.MobileAds
+import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
-import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.ono.lotto_map.databinding.ActivityMapsBinding
-import org.koin.androidx.viewmodel.ext.android.viewModel
-import com.ono.lotto_map.application.MyApplication
-import android.graphics.Bitmap
-import android.net.Uri
-import android.view.LayoutInflater
-import android.view.View
-import android.widget.TextView
-import androidx.databinding.DataBindingUtil
-import com.google.android.gms.ads.AdRequest
-import com.google.android.gms.ads.AdSize
-import com.google.android.gms.ads.MobileAds
+import com.google.android.material.snackbar.Snackbar
 import com.ono.lotto_map.R
-import com.ono.lotto_map.data.model.StoreInfo
+import com.ono.lotto_map.application.MyApplication
+import com.ono.lotto_map.databinding.ActivityMapsBinding
 import com.ono.lotto_map.databinding.ViewInfoWindowBinding
 import com.ono.lotto_map.showToast
+import com.ono.lotto_map.util.PermissionUtil
 import kotlinx.android.synthetic.main.activity_maps.*
-import kotlinx.android.synthetic.main.bottom_sheet.*
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
+private const val LOCATION_INTERVAL: Long = 10000
+private const val LOCATION_FASTEST_INTERVAL: Long = 5000
+private const val LOCATION_PRIORITY = LocationRequest.PRIORITY_HIGH_ACCURACY
+private const val PERMISSION_CHECKSUM: Int = 2001
+private const val SCAN_RANGE = 2000
 
 class MapsActivity : BaseActivity<ActivityMapsBinding>(), OnMapReadyCallback {
     override val resourceId: Int = R.layout.activity_maps
-    private lateinit var mMap: GoogleMap
     private val vm: MapsViewModel by viewModel()
+
+    private lateinit var mMap: GoogleMap
+
+    private val googleKey by lazy { getString(R.string.geocoding_api_key) }
 
     private val goldList = mutableListOf<Marker>()
     private val silverList = mutableListOf<Marker>()
@@ -46,11 +58,65 @@ class MapsActivity : BaseActivity<ActivityMapsBinding>(), OnMapReadyCallback {
     private val silverIcon by lazy { loadBitmap(R.drawable.ic_silver) }
     private val bronzeIcon by lazy { loadBitmap(R.drawable.ic_bronze) }
 
-    private val SCAN_RANGE = 2000
+    private val locationManager by lazy { getSystemService(LOCATION_SERVICE) as LocationManager }
+
+    private val mFusedLocationClient: FusedLocationProviderClient by lazy {
+        LocationServices.getFusedLocationProviderClient(this)
+    }
+
+    private val locationRequest =
+        LocationRequest()
+            .setInterval(LOCATION_INTERVAL)
+            .setFastestInterval(LOCATION_FASTEST_INTERVAL)
+            .setPriority(LOCATION_PRIORITY)
+
+    private val builder = LocationSettingsRequest.Builder().apply {
+        addLocationRequest(locationRequest)
+    }
+
+    private lateinit var locationCallback: LocationCallback
+
+    private var requestingLocationUpdates = false
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        var check = true
+        if (requestCode == PERMISSION_CHECKSUM) {
+            if (!PermissionUtil.checkPermissions(this, ACCESS_FINE_LOCATION))
+                check = false
+        }
+
+        if (check) {
+            getCurrentLocation()
+        } else {
+            when (PermissionUtil.shouldShowRequestPermissionRationale(this, ACCESS_FINE_LOCATION)) {
+                true -> {
+                    Snackbar.make(
+                        binding.layout,
+                        "퍼미션이 거부되었습니다.",
+                        Snackbar.LENGTH_INDEFINITE
+                    )
+                        .setAction("확인", {}).show()
+                }
+                false -> {
+                    Snackbar.make(
+                        binding.layout,
+                        "퍼미션이 거부되었습니다. 설정(앱 정보)에서 퍼미션을 허용해야 합니다.",
+                        Snackbar.LENGTH_INDEFINITE
+                    )
+                        .setAction("확인", {}).show()
+                }
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         binding.editText.setOnEditorActionListener { view, i, keyEvent ->
             when (i) {
                 EditorInfo.IME_ACTION_DONE -> {
@@ -59,7 +125,7 @@ class MapsActivity : BaseActivity<ActivityMapsBinding>(), OnMapReadyCallback {
                             showToast("검색어를 입력해주세요.")
                         }
                         false -> {
-                            vm.searchAddress(view.text.toString())
+                            vm.searchAddress(googleKey, view.text.toString())
                             showProgressCircular(true)
                         }
                     }
@@ -118,6 +184,12 @@ class MapsActivity : BaseActivity<ActivityMapsBinding>(), OnMapReadyCallback {
             startActivity(intent)
         }
 
+        binding.btnGps.setOnClickListener {
+            if (PermissionUtil.getPermission(this, ACCESS_FINE_LOCATION, PERMISSION_CHECKSUM)) {
+                getCurrentLocation()
+            }
+        }
+
         val mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
@@ -136,6 +208,74 @@ class MapsActivity : BaseActivity<ActivityMapsBinding>(), OnMapReadyCallback {
         MobileAds.initialize(this) {}
         val adRequest = AdRequest.Builder().build()
         binding.adView.loadAd(adRequest)
+
+    }
+
+    private fun checkGPSEnable(): Boolean {
+        return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+    }
+
+
+    private fun enableGPS() {
+        var intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+        intent.addCategory(Intent.CATEGORY_DEFAULT)
+        startActivity(intent)
+    }
+
+    private fun getCurrentLocation(): Boolean {
+        if (!checkGPSEnable()) {
+            Snackbar.make(
+                binding.layout,
+                "GPS가 꺼져있습니다. GPS를 켜주세요.",
+                Snackbar.LENGTH_INDEFINITE
+            )
+                .setAction("확인", { enableGPS() }).show()
+            return false
+        }
+
+        // 구글 맵 설정 - 내 위치 표시
+        mMap.isMyLocationEnabled = true
+        mMap.uiSettings.isMyLocationButtonEnabled = true
+
+        requestingLocationUpdates = true
+
+        locationCallback = object : LocationCallback() {
+            override fun onLocationResult(locationResult: LocationResult?) {
+                locationResult ?: return
+                for (location in locationResult.locations) {
+                    location.latitude
+                    location.longitude
+
+                    vm.setNewLocation(location.latitude, location.longitude)
+                    showProgressCircular(true)
+                }
+                stopLocationUpdates()
+                mMap.isMyLocationEnabled = true
+                mMap.uiSettings.isMyLocationButtonEnabled = true
+            }
+        }
+        startLocationUpdates()
+
+        return true
+    }
+
+    private fun startLocationUpdates() {
+        Log.e("","startLocationUpdate")
+        mFusedLocationClient.requestLocationUpdates(
+            locationRequest,
+            locationCallback,
+            Looper.getMainLooper()
+        )
+    }
+
+    private fun stopLocationUpdates() {
+        try {
+            synchronized(this){
+                val voidTask = mFusedLocationClient.removeLocationUpdates(locationCallback)
+            }
+        } catch (exp: SecurityException) {
+            Log.d("", " Security exception while removeLocationUpdates");
+        }
     }
 
     override fun onBackPressed() {
@@ -155,12 +295,13 @@ class MapsActivity : BaseActivity<ActivityMapsBinding>(), OnMapReadyCallback {
                     LatLng(38.0, 131.0)
                 )
             )
+
             uiSettings.isRotateGesturesEnabled = false // 회전 금지
             moveCamera(CameraUpdateFactory.newLatLngZoom(vm.currentLatLng.value, 10.0f)) //기본 좌표
             setInfoWindowAdapter(InfoWindowAdapter(this@MapsActivity))
         }
 
-        vm.currentLatLng.observe(this, Observer() {
+        vm.currentLatLng.observe(this, Observer {
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(it, 12.0f))
             updateNearStore()
         })
@@ -168,11 +309,6 @@ class MapsActivity : BaseActivity<ActivityMapsBinding>(), OnMapReadyCallback {
 
     private fun loadBitmap(resourceId: Int): Bitmap {
         return BitmapFactory.decodeResource(resources, resourceId)
-    }
-
-    private fun resizeBitmap(resourceId: Int, width: Int, height: Int): Bitmap {
-        val b = loadBitmap(resourceId)
-        return Bitmap.createScaledBitmap(b, width, height, false)
     }
 
     private fun updateNearStore() {

@@ -10,7 +10,7 @@ class MapsRepositoryImpl(
     private val mapsLocalDataSource: MapsLocalDataSource,
     private val mapsRemoteDataSource: MapsRemoteDataSource
 ) : MapsRepository {
-    override fun searchAddress(address: String): Single<Geometry> {
-        return mapsRemoteDataSource.searchAddress(address)
+    override fun searchAddress(key: String, address: String): Single<Geometry> {
+        return mapsRemoteDataSource.searchAddress(key, address)
     }
 }
