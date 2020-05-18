@@ -1,4 +1,4 @@
-package com.ono.lotto_map.data.entity
+package com.ono.lotto_map.data.response
 
 import com.google.gson.annotations.Expose
 import com.google.gson.annotations.SerializedName
