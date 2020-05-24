@@ -1,0 +1,20 @@
+{
+    "dev": {
+        "awscloudformation": {
+            "AuthRoleName": "amplify-lottomap-dev-163619-authRole",
+            "UnauthRoleArn": "arn:aws:iam::961566266423:role/amplify-lottomap-dev-163619-unauthRole",
+            "AuthRoleArn": "arn:aws:iam::961566266423:role/amplify-lottomap-dev-163619-authRole",
+            "Region": "ap-northeast-2",
+            "DeploymentBucketName": "amplify-lottomap-dev-163619-deployment",
+            "UnauthRoleName": "amplify-lottomap-dev-163619-unauthRole",
+            "StackName": "amplify-lottomap-dev-163619",
+            "StackId": "arn:aws:cloudformation:ap-northeast-2:961566266423:stack/amplify-lottomap-dev-163619/790dadc0-99a3-11ea-9a2b-02519e15df86",
+            "AmplifyAppId": "d15lshwrfqqc9l"
+        },
+        "categories": {
+            "auth": {
+                "lottomapa9c1d1e7": {}
+            }
+        }
+    }
+}

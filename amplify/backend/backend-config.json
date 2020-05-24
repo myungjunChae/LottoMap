@@ -1,0 +1,15 @@
+{
+	"auth": {
+		"lottomapa9c1d1e7": {
+			"service": "Cognito",
+			"providerPlugin": "awscloudformation",
+			"dependsOn": []
+		}
+	},
+	"storage": {
+		"lottmapS3": {
+			"service": "S3",
+			"providerPlugin": "awscloudformation"
+		}
+	}
+}
