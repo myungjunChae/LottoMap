@@ -1,13 +1,20 @@
 package com.ono.lotto_map.application
 
-import com.ono.lotto_map.datasource.local.MapsLocalDataSource
+import com.ono.lotto_map.datasource.local.ConfigLocalDataSource
+import com.ono.lotto_map.datasource.local.StoreLocalDataSource
 import com.ono.lotto_map.datasource.remote.MapsApi
 import com.ono.lotto_map.datasource.remote.MapsRemoteDataSource
-import com.ono.lotto_map.domain.MapsRepositoryImpl
-import com.ono.lotto_map.domain.MapsUsecase
-import com.ono.lotto_map.presentation.MapsViewModel
+import com.ono.lotto_map.datasource.remote.StoreRemoteDataSource
+import com.ono.lotto_map.repository.*
+import com.ono.lotto_map.ui.loading.LoadingViewModel
+import com.ono.lotto_map.ui.maps.MapsViewModel
+import com.ono.lotto_map.usecase.ConfigUsecase
+import com.ono.lotto_map.usecase.MapsUsecase
+import com.ono.lotto_map.usecase.StoreInfoUsecase
+import com.ono.lotto_map.util.ResourceProviderImpl
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
+import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.core.context.loadKoinModules
 import org.koin.core.module.Module
@@ -24,6 +31,7 @@ private val loadFeature by lazy {
     loadKoinModules(
         listOf(
             viewModelModule,
+            providerModule,
             usecaseModule,
             repositoryModule,
             localDataSourceModule,
@@ -34,30 +42,46 @@ private val loadFeature by lazy {
 }
 
 internal val viewModelModule: Module = module {
-    viewModel { MapsViewModel(get()) }
+    viewModel { MapsViewModel(get(), get(), get(named("provider"))) }
+    viewModel { LoadingViewModel(get(), get()) }
+}
+
+internal val providerModule: Module = module {
+    single(named("provider")) { ResourceProviderImpl(androidContext()) }
 }
 
 internal val usecaseModule: Module = module {
-    factory { MapsUsecase(get(named("t"))) }
+    factory { MapsUsecase(get(named("mapRepository"))) }
+    factory { StoreInfoUsecase(get(named("storeRepository"))) }
+    factory { ConfigUsecase(get(named("configRepository"))) }
 }
 
 internal val repositoryModule: Module = module {
-    single(named("t")) { MapsRepositoryImpl(get(named("t1")), get(named("t2"))) }
+    single(named("mapRepository")) { MapsRepository(get(named("mapRemote"))) }
+    single(named("storeRepository")) {
+        StoreInfoRepository(
+            get(named("storeLocal")),
+            get(named("storeRemote"))
+        )
+    }
+    single(named("configRepository")) { ConfigRepository(get(named("configLocal"))) }
 }
 
 internal val localDataSourceModule: Module = module {
-    single(named("t1")) { MapsLocalDataSource() }
+    single(named("storeLocal")) { StoreLocalDataSource(androidContext()) }
+    single(named("configLocal")) { ConfigLocalDataSource(androidContext()) }
 }
 
 internal val remoteDataSourceModule: Module = module {
-    single(named("t2")) { MapsRemoteDataSource(get()) }
+    single(named("mapRemote")) { MapsRemoteDataSource(androidContext(), get()) }
+    single(named("storeRemote")) { StoreRemoteDataSource(androidContext()) }
 }
 
 internal val apiModule: Module = module {
     single { mapsApi }
 }
 
-internal const val BASE_URL = "https://maps.googleapis.com/maps/api/geocode/"
+internal const val MAPS_API_URL = "https://maps.googleapis.com/maps/api/geocode/"
 
 internal val LogInterceptor = HttpLoggingInterceptor().apply {
     level = HttpLoggingInterceptor.Level.BODY
@@ -69,12 +93,16 @@ internal val client = OkHttpClient.Builder().apply {
     readTimeout(30, TimeUnit.SECONDS)
 }.build()
 
-internal val retrofit: Retrofit =
+internal val mapsRetrofit: Retrofit =
     Retrofit.Builder()
         .client(client)
-        .baseUrl(BASE_URL)
+        .baseUrl(MAPS_API_URL)
         .addConverterFactory(GsonConverterFactory.create())
         .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
         .build()
 
-internal val mapsApi: MapsApi = retrofit.create(MapsApi::class.java)
+internal val mapsApi: MapsApi = mapsRetrofit.create(MapsApi::class.java)
+
+
+
+

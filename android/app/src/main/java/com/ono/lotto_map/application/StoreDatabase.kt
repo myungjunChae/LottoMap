@@ -10,7 +10,6 @@ import com.ono.lotto_map.datasource.local.StoreInfoDao
 @Database(entities = [StoreInfoEntity::class], version = 1, exportSchema = false)
 abstract class StoreDatabase : RoomDatabase() {
     abstract val storeInfoDao: StoreInfoDao
-
     companion object {
         @Volatile
         private var INSTANCE: StoreDatabase? = null
