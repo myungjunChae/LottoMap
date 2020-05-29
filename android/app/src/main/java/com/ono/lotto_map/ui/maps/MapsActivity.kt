@@ -216,12 +216,15 @@ class MapsActivity : BaseActivity<ActivityMapsBinding>(), OnMapReadyCallback {
             )
 
             uiSettings.isRotateGesturesEnabled = false // 회전 금지
+
+            //기본 좌표
             moveCamera(
                 CameraUpdateFactory.newLatLngZoom(
                     viewModel.currentLatLng.value,
                     10.0f
                 )
-            ) //기본 좌표
+            )
+
             setInfoWindowAdapter(InfoWindowAdapter(this@MapsActivity))
         }
 
@@ -241,9 +244,6 @@ class MapsActivity : BaseActivity<ActivityMapsBinding>(), OnMapReadyCallback {
             }
 
             viewModel.updateNearStore()
-
-            //marker.tag = index
-
         })
     }
 

@@ -10,6 +10,7 @@ import com.amazonaws.mobileconnectors.s3.transferutility.TransferUtility
 import com.amazonaws.regions.Region
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.s3.AmazonS3Client
+import com.ono.lotto_map.R
 import io.reactivex.Completable
 import io.reactivex.functions.Cancellable
 import java.io.File
@@ -22,7 +23,7 @@ class StoreRemoteDataSource(private val context: Context) {
         return Completable.create { emitter ->
             val credentialsProvider = CognitoCachingCredentialsProvider(
                 context,
-                "ap-northeast-2:18422a8f-03bf-44a5-b347-c6257f3b86ba", // 자격 증명 풀 ID
+                context.getString(R.string.aws_iam_key), // 자격 증명 풀 ID
                 Regions.AP_NORTHEAST_2 // 리전
             )
 

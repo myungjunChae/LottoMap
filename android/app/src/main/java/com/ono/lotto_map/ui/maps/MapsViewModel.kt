@@ -11,7 +11,6 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.ono.lotto_map.R
 import com.ono.lotto_map.data.local.StoreInfoEntity
-import com.ono.lotto_map.data.model.StoreInfo
 import com.ono.lotto_map.usecase.MapsUsecase
 import com.ono.lotto_map.usecase.StoreInfoUsecase
 import com.ono.lotto_map.util.ResourceProvider
