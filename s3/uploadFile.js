@@ -1,12 +1,12 @@
 const fs = require('fs');
 const AWS = require('aws-sdk');
 const BUCKET_NAME = 'lottomap';
-const s3 = new AWS.S3({   accessKeyId: 'AKIA57YOQ2Q36EKUZCFV',   secretAccessKey: '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' });
+const s3 = new AWS.S3({   });
 const uploadFile = (fileName) => {
     const fileContent = fs.readFileSync(fileName);
     const params = {
         Bucket: BUCKET_NAME,
-        Key: 'data.json', // File name you want to save as in S3
+        Key: 'data.json',
         Body: fileContent   
     };
     s3.upload(params, function(err, data) {
