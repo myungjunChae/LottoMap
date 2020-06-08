@@ -31,8 +31,12 @@ class StoreInfoRepository(
         return storeInfoLocalDataSource.getAllStore()
     }
 
-    fun getStoreDataFromLocalStorage(): Single<List<StoreInfoEntity>> {
-        return storeInfoLocalDataSource.getStoreDataFromLocalStorage()
+    fun getStoreDataFromLocal(cached: Boolean): Single<List<StoreInfoEntity>> {
+        return if(cached){
+            storeInfoLocalDataSource.getStoreDataFromLocalStorage()
+        }else{
+            storeInfoLocalDataSource.getStoreDataFromRoom()
+        }
     }
 
     fun downloadStoreDataFromS3(): Completable {

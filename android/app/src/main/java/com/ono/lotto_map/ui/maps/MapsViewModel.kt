@@ -16,9 +16,12 @@ import com.ono.lotto_map.usecase.StoreInfoUsecase
 import com.ono.lotto_map.util.ResourceProvider
 import com.orhanobut.logger.Logger
 import io.reactivex.Single
+import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
 
 private const val SCAN_RANGE = 2000
+private const val DEFAULT_LAT = 37.498186
+private const val DEFAULT_LONG = 127.027481
 
 class MarkerOptionIndex(markerOptions: MarkerOptions, index: Int) {
     val mMarkerOptions = markerOptions
@@ -30,6 +33,9 @@ class MapsViewModel(
     private val storeInfoUsecase: StoreInfoUsecase,
     resourceProvider: ResourceProvider
 ) : ViewModel() {
+    private val compositeDisposable = CompositeDisposable()
+    private val defaultLatLng = LatLng(DEFAULT_LAT, DEFAULT_LONG)
+
     private val goldIcon by lazy { resourceProvider.loadBitmap(R.drawable.ic_gold) }
     private val silverIcon by lazy { resourceProvider.loadBitmap(R.drawable.ic_silver) }
     private val bronzeIcon by lazy { resourceProvider.loadBitmap(R.drawable.ic_bronze) }
@@ -37,7 +43,7 @@ class MapsViewModel(
     private var _storeInfoList = mutableListOf<StoreInfoEntity>()
     val storeInfoList = MutableLiveData<List<StoreInfoEntity>>()
 
-    private val _currentLatLng = MutableLiveData(LatLng(37.498186, 127.027481))
+    private val _currentLatLng = MutableLiveData(defaultLatLng)
     val currentLatLng: LiveData<LatLng>
         get() = _currentLatLng
 
@@ -233,71 +239,90 @@ class MapsViewModel(
         _currentStore.postValue(store)
     }
 
+    @SuppressLint("CheckResult")
     fun searchAddress(address: String) {
-        mapsUsecase.searchLocation(address)
-            .subscribeOn(Schedulers.io())
-            .subscribe({
-                setNewLocation(it.location.lat, it.location.lng)
-            }, {
-                Logger.d(it)
-            })
+        compositeDisposable.add(
+            mapsUsecase.searchLocation(address)
+                .subscribeOn(Schedulers.io())
+                .subscribe({
+                    setNewLocation(it.location.lat, it.location.lng)
+                }, {
+                    Logger.d(it)
+                })
+        )
     }
 
     @SuppressLint("CheckResult")
     fun updateNearStore() {
-        storeInfoUsecase.getStoreDataFromLocalStorage()
-            .subscribeOn(Schedulers.io())
-            .flatMap {
-                addStoreInfo(it)
-
-                val currentLocation: LatLng = currentLatLng.value ?: LatLng(37.498186, 127.027481)
-                var searchStoreList = mutableListOf<StoreInfoEntity>()
-
-                for ((index, store) in it.withIndex()) {
-                    var results = FloatArray(1)
-                    Location.distanceBetween(
-                        currentLocation.latitude,
-                        currentLocation.longitude,
-                        store.lat,
-                        store.lng,
-                        results
-                    )
-                    var distanceInMeters = results[0]
-
-                    if (distanceInMeters < SCAN_RANGE) {
-                        store.score = store.first_winning * 8 + store.second_winning
-                        searchStoreList.add(store)
-                    }
-
-                    store.store_id = index
+        compositeDisposable.add(
+            storeInfoUsecase.getStoreDataFromLocal(true)
+                .subscribeOn(Schedulers.io())
+                .flatMap {
+                    updateNearStoreMap(it)
                 }
-                Single.just(searchStoreList)
+                .subscribe({
+                    updateNearStoreComplete(it)
+                }, {
+                    Logger.d(it)
+                    onProgressComplete()
+                })
+        )
+    }
+
+    @SuppressLint("CheckResult")
+    private fun updateNearStoreMap(storeInfoList: List<StoreInfoEntity>): Single<List<StoreInfoEntity>> {
+        addStoreInfo(storeInfoList)
+
+        val currentLocation: LatLng = currentLatLng.value ?: defaultLatLng
+        var searchStoreList = mutableListOf<StoreInfoEntity>()
+
+        for ((index, store) in storeInfoList.withIndex()) {
+            val results = FloatArray(1)
+            Location.distanceBetween(
+                currentLocation.latitude,
+                currentLocation.longitude,
+                store.lat,
+                store.lng,
+                results
+            )
+            val distanceInMeters = results[0]
+
+            if (distanceInMeters < SCAN_RANGE) {
+                store.score = store.first_winning * 8 + store.second_winning
+                searchStoreList.add(store)
             }
-            .subscribe({
-                val tempGoldList = mutableListOf<StoreInfoEntity>()
-                val tempSilverList = mutableListOf<StoreInfoEntity>()
-                val tempBronzeList = mutableListOf<StoreInfoEntity>()
-                for (store in it) {
-                    when {
-                        store.score >= 30 -> {
-                            tempGoldList.add(store)
-                        }
-                        store.score in 10 until 30 -> {
-                            tempSilverList.add(store)
-                        }
-                        else -> {
-                            tempBronzeList.add(store)
-                        }
-                    }
-                }
-                addGoldStore(tempGoldList)
-                addSilverStore(tempSilverList)
-                addBronzeStore(tempBronzeList)
-                onProgressComplete()
 
-            }, {
-                Logger.d(it)
-                onProgressComplete()
-            })
+            store.store_id = index
+        }
+
+        return Single.just(searchStoreList)
+    }
+
+    private fun updateNearStoreComplete(storeInfoList: List<StoreInfoEntity>) {
+        val tempGoldList = mutableListOf<StoreInfoEntity>()
+        val tempSilverList = mutableListOf<StoreInfoEntity>()
+        val tempBronzeList = mutableListOf<StoreInfoEntity>()
+        for (store in storeInfoList) {
+            when {
+                store.score >= 30 -> {
+                    tempGoldList.add(store)
+                }
+                store.score in 10 until 30 -> {
+                    tempSilverList.add(store)
+                }
+                else -> {
+                    tempBronzeList.add(store)
+                }
+            }
+        }
+        addGoldStore(tempGoldList)
+        addSilverStore(tempSilverList)
+        addBronzeStore(tempBronzeList)
+        onProgressComplete()
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        compositeDisposable.clear()
     }
 }

@@ -27,8 +27,8 @@ class StoreInfoUsecase(private val storeInfoRepository: StoreInfoRepository) {
         return storeInfoRepository.getAllStore()
     }
 
-    fun getStoreDataFromLocalStorage(): Single<List<StoreInfoEntity>> {
-        return storeInfoRepository.getStoreDataFromLocalStorage()
+    fun getStoreDataFromLocal(cached : Boolean): Single<List<StoreInfoEntity>> {
+        return storeInfoRepository.getStoreDataFromLocal(cached)
     }
 
     fun downloadStoreDataFromS3(): Completable {

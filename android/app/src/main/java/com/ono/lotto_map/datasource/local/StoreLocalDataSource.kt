@@ -51,4 +51,8 @@ class StoreLocalDataSource(private val context: Context) {
             }
         }
     }
+
+    fun getStoreDataFromRoom(): Single<List<StoreInfoEntity>>{
+        return getAllStore()
+    }
 }

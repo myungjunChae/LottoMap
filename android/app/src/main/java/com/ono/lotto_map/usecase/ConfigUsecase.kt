@@ -7,7 +7,7 @@ class ConfigUsecase(private val configRepository: ConfigRepository) {
         return configRepository.getIsFirst()
     }
 
-    fun setIsNotFirst(){
-        configRepository.setIsNotFirst()
+    fun isFirstComplete(){
+        configRepository.isFirstComplete()
     }
 }

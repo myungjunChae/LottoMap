@@ -7,7 +7,7 @@ class ConfigRepository(private val configLocalDataSource : ConfigLocalDataSource
         return configLocalDataSource.getIsFirst()
     }
 
-    fun setIsNotFirst(){
-        configLocalDataSource.setIsNotFirst()
+    fun isFirstComplete(){
+        configLocalDataSource.isFirstComplete()
     }
 }

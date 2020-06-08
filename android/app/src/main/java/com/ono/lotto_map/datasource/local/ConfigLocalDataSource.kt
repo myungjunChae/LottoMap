@@ -12,7 +12,7 @@ class ConfigLocalDataSource(context: Context) {
         return pref.getBoolean(IS_FIRST, true)
     }
 
-    fun setIsNotFirst() {
+    fun isFirstComplete() {
         pref.setBoolean(IS_FIRST, false)
     }
 }
