@@ -15,6 +15,7 @@ import androidx.lifecycle.Observer
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.location.*
+import com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCURACY
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -52,9 +53,8 @@ class MapsActivity : BaseActivity<ActivityMapsBinding>(), OnMapReadyCallback {
     //GPS
     private val locationRequest =
         LocationRequest()
-            .setInterval(LOCATION_INTERVAL)
-            .setFastestInterval(LOCATION_FASTEST_INTERVAL)
-            .setPriority(LOCATION_PRIORITY)
+            .setNumUpdates(1)
+            .setPriority(PRIORITY_HIGH_ACCURACY)
 
     private val locationManager by lazy { getSystemService(LOCATION_SERVICE) as LocationManager }
     private val mFusedLocationClient: FusedLocationProviderClient by lazy {
@@ -237,7 +237,6 @@ class MapsActivity : BaseActivity<ActivityMapsBinding>(), OnMapReadyCallback {
                 viewModel.setCurrentStore(store)
                 false
             }
-
             mMap.setOnInfoWindowCloseListener {
                 viewModel.setCurrentStore(null)
             }
