@@ -10,7 +10,7 @@
 
 ## Architecture
 <p align="center">
-     <img src="./resource/Architecture.png" width="500"/>
+     <img src="./image/Architecture.png" width="500"/>
 </p>
 
 <p align="center">
