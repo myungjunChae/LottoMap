@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import com.ono.lotto_map.usecase.ConfigUsecase
 import com.ono.lotto_map.usecase.StoreInfoUsecase
+import com.orhanobut.logger.Logger
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.schedulers.Schedulers
 
@@ -27,8 +28,8 @@ class LoadingViewModel(
                 .flattenAsObservable { it }
                 .flatMapCompletable { storeInfoUsecase.insertStore(it) }
                 .subscribe(
-                    { },
-                    { }
+                    { Logger.d("Insert StoreInfo") },
+                    { Logger.e("Fail to insert StoreInfo") }
                 )
         )
     }

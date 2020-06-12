@@ -1,7 +1,6 @@
 package com.ono.lotto_map.ui.loading
 
 import android.os.Bundle
-import androidx.lifecycle.Observer
 import com.ono.lotto_map.R
 import com.ono.lotto_map.databinding.ActivityLoadingBinding
 import com.ono.lotto_map.startActivityWithFinish
@@ -16,19 +15,7 @@ class LoadingActivity : BaseActivity<ActivityLoadingBinding>() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        vm.isFirst.observe(this, Observer { isFirst ->
-            if (!isFirst) {
-                startActivityWithFinish<MapsActivity>()
-            }
-        })
-
-        isFirst()
-    }
-
-    private fun isFirst() {
-        if (vm.isFirst.value!!) {
-            vm.getStoreDataFromLocalStorage()
-            vm.isFirstComplete()
-        }
+        vm.getStoreDataFromLocalStorage()
+        startActivityWithFinish<MapsActivity>()
     }
 }
