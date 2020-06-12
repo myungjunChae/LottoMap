@@ -4,7 +4,7 @@
 본 어플리케이션 [나눔로또](https://dhlottery.co.kr/common.do?method=main)에서 제공하는 로또 판매점의 누적 당첨수를 기반으로 순위를 나눠어 해당 결과를 제공합니다. 이제는 더 이상 로또명당을 찾기 위해 헤매지마세요🥳
 
 ## Overview
-| 로그인 | 아리수맵 |
+| 내 위치기반 판매점 찾기 | 검색 위치기반 판매점 찾기 |
 | :---: | :---: | 
 | <img src="./image/Overview1.gif" width="200"> |    <img src="./image/Overview2.gif" width="200">    
 
