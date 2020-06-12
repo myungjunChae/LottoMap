@@ -1,6 +1,7 @@
 package com.ono.lotto_map.application
 
 import android.app.Application
+import com.facebook.stetho.Stetho
 import com.google.gson.Gson
 import com.ono.lotto_map.data.remote.StoreInfoResponse
 import com.ono.lotto_map.data.remote.toModel
@@ -18,11 +19,11 @@ class MyApplication : Application() {
     }
 
     val storeDatabase by lazy {
-        StoreDatabase.getInstance(this)
+        StoreInfoDatabase.getInstance(this)
     }
 
     val storeDao by lazy {
-        StoreDatabase.getInstance(this).storeInfoDao
+        StoreInfoDatabase.getInstance(this).storeInfoDao
     }
 
     override fun onCreate() {
@@ -33,5 +34,6 @@ class MyApplication : Application() {
         }
 
         Logger.addLogAdapter(AndroidLogAdapter())
+        Stetho.initializeWithDefaults(this)
     }
 }
